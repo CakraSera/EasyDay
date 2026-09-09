@@ -1,0 +1,6 @@
+allowBuilds:
+  unrs-resolver: true
+  '@embedded-postgres/linux-x64': true
+  '@prisma/engines': true
+  esbuild: true
+  prisma: true

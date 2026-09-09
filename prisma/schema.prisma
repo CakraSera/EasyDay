@@ -1,0 +1,59 @@
+// EasyDay backend — chat persistence.
+//
+// PRD v1 (document/PRD.en.md): single implicit user `demo`, no auth (ADR 0002).
+// Chat threads back the optional "Why?" drawer / assistant surface; the planner
+// artifact (Goal/Week) stays Board-first and is intentionally NOT modeled here
+// until the BuildThisWeek slice lands.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Single implicit PRD user. Row is created on first use (singleton id "demo").
+model User {
+  id        String   @id // "demo"
+  createdAt DateTime @default(now()) @map("created_at")
+  threads   Thread[]
+
+  @@map("users")
+}
+
+model Thread {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  title     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  turns     Turn[]
+
+  @@index([userId, updatedAt])
+  @@map("threads")
+}
+
+/// One client request = one Turn: the input user message plus the assistant
+/// response captured from the client protocol stream.
+model Turn {
+  id        String   @id @default(cuid())
+  threadId  String   @map("thread_id")
+  /// Ordinal of the request within the thread (0-based).
+  seq       Int
+  /// Role of the stored input message: always "user" (server rejects others).
+  input     String
+  /// Assistant reply text, when the stream completed. Null = stopped/failed.
+  output    String?
+  /// True when the stream ended with an error event (masked to the client).
+  failed    Boolean  @default(false) @map("failed")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@unique([threadId, seq])
+  @@index([threadId, createdAt])
+  @@map("turns")
+}
