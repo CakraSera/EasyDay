@@ -1,21 +1,23 @@
-# Easy Plan — PRD v1 (Bahasa Indonesia)
+# RunMax — PRD v1 (Bahasa Indonesia)
 
-**Status:** kunci lingkup untuk pengerjaan 14 hari  
-**Tanggal:** 2026-09-06  
-**Kelas:** Devscale Indonesia, AI Product Engineering TypeScript Batch I  
-**Stack:** TypeScript fullstack. **Expo 54 web, mobile-first** (lebar ponsel) + server agen TypeScript.  
-**Persistensi:** Goal dan Week di server agen sebagai pengguna **`demo`**. Tidak ada auth di v1. Rebuild **menimpa Senin ini**. Week kalender lama (Senin sebelumnya) disimpan. Tidak ada snapshot untuk `weekStart` yang sama.  
-**Pekerjaan:** Dari satu **Goal** lomba dan **Log** latihan yang opsional (bisa berantakan), hasilkan **Week** ini dengan ≤1 Session Hard, berupa **Board**.
+**Status:** kunci lingkup untuk pengerjaan 14 hari
+**Tanggal:** 2026-09-12
+**Kelas:** Devscale Indonesia, AI Product Engineering TypeScript Batch I
+**Stack:** TypeScript fullstack. **Expo 54 web, mobile-first** (lebar ponsel) + server agen TypeScript.
+**Persistensi:** **Week** ini dan **Log** sumber yang opsional di server agen sebagai pengguna **`demo`**. Tidak ada auth di v1. Rebuild **menimpa Senin ini**. Senin lama tidak disimpan.
+**Pekerjaan:** Dari **Log** yang opsional (bisa berantakan), hasilkan **Week** ini dengan ≤1 Session Hard, berupa **Board**. **VO2 max** hanya salinan alasan, bukan data.
 
-Istilah kanonis ada di [`../CONTEXT.md`](../CONTEXT.md). Pakai kata itu di kode, eval, dan copy UI. Nama objek (`Goal`, `Week`, `Session`, `Kind`, …) **tetap bahasa Inggris**.
+Istilah kanonis ada di [`../CONTEXT.md`](../CONTEXT.md). Pakai kata itu di kode, eval, dan copy UI. Nama objek (`Week`, `Session`, `Kind`, …) **tetap bahasa Inggris**.
 
 ---
 
 ## 1. Masalah
 
-Pelari menumpuk dua–tiga hari berat karena chatbot bilang “tambah interval.” Kalender 16 minggu tidak dipakai malam Minggu. Yang dibutuhkan: **minggu ini**, mil mudah dulu, maksimal satu sesi quality, ada istirahat atau jalan, di Board lebar ponsel yang benar-benar diikuti.
+Pelari ingin menaikkan VO2 max lalu malah dapat rencana rumit: kalender 16 minggu, kuesioner, log harian wajib, ulasan mingguan, pace yang dikarang. Malam Minggu mereka menumpuk dua hari Hard, atau tidak jalan sama sekali.
 
-Ini bukan “sekadar chatbot AI.” Ini bukan WhatsApp.
+v1 **tidak** mengukur VO2 max. Tidak ada lab, jam, atau isian 5K. Produk menegakkan minggu yang *untuk* VO2 max: mayoritas Easy, paling banyak satu Quality, minimal satu Rest atau Walk, dan tanpa Quality jika Log menyebut nyeri.
+
+Ini bukan chatbot. Ini bukan WhatsApp. Ini bukan klinik.
 
 ---
 
@@ -23,7 +25,7 @@ Ini bukan “sekadar chatbot AI.” Ini bukan WhatsApp.
 
 Satu pelari (pembuat produk). Log boleh Bahasa Indonesia, Inggris, atau campur.
 
-v1 **bukan** kapten klub, daftar atlet, atau produk multi-pelari.
+v1 **bukan** kapten klub, daftar atlet, atau matriks pemula/menengah/lanjutan.
 
 **Permukaan:** web mobile-first. Demo di browser lebar ponsel. Bukan aplikasi toko.
 
@@ -32,20 +34,20 @@ v1 **bukan** kapten klub, daftar atlet, atau produk multi-pelari.
 ## 3. Masuk lingkup
 
 - PRD sebelum kode (berkas ini + kembaran Inggris).
-- Beranda = Board. Chat hanya laci **Why?** opsional (jelaskan, hanya baca).
+- Beranda = **Board**. Tanpa chat. Tanpa laci **Why?**.
 - Satu agen (`Weeksmith`) + satu alur (`BuildThisWeek`).
-- 6 tool bernama kata kerja. Tidak ada `doAnything`.
+- 5 tool bernama kata kerja. Tidak ada `doAnything`. Tidak ada `loadGoal`.
 - MCP `notes` + RAG dari **catatan pendek yang ditulis pembuat** (bukan buku berhak cipta).
 - Eval + jejak (satu trace per Build; tiap tool satu span).
-- Goal: jarak + tanggal lomba + seed time opsional.
-- Hanya Week ini (**Senin–Minggu**, bukan 7 hari bergulir). Tidak ada UI kalender 16 minggu.
-- Goal + Week tersimpan sebagai pengguna `demo` di server agen. Tanpa login. Senin ini ditimpa; Senin lama disimpan.
+- Hanya **Week ini** (**Senin–Minggu**, bukan 7 hari bergulir). Tidak ada UI kalender 16 minggu. Tidak ada daftar Week lalu.
+- Week + Log opsional tersimpan sebagai pengguna `demo` di server agen. Tanpa login. Senin ini ditimpa; Senin lama dibuang.
 - Mayoritas Session Easy (pace ngobrol).
-- Maksimal 1 Session Hard per Week.
+- Maksimal 1 Session Hard per Week (Quality adalah satu-satunya Kind Hard).
 - ≥1 Rest atau Walk.
-- Nyeri/cedera di Log → tidak ada Quality, tidak ada interval lari. Bukan diagnosis medis.
-- Seed time → petunjuk pace Easy saja, bukan split interval.
-- Jika tanggal lomba jatuh di Week ini: satu-satunya Hard adalah Race (atau shakeout Easy). Tanpa interval.
+- Isyarat nyeri/cedera di Log → tidak ada Quality, tidak ada interval lari. Bukan diagnosis medis.
+- Log kosong sah. Aplikasi mengisi tanggal tujuh kartu dari minggu kalender ini.
+- Quality = menit + satu baris bahasa biasa. Tanpa pace, zona, atau set×jarak.
+- Setelah Build, ketuk kartu untuk ganti Kind, menit, atau catatan. Ketukan ilegal tidak menempel.
 - Expo 54 **web**, tata letak mobile-first.
 - Strava / Garmin tidak wajib.
 - **Tanpa WhatsApp** (tanpa salin, tanpa kirim, tanpa templat).
@@ -56,19 +58,21 @@ v1 **bukan** kapten klub, daftar atlet, atau produk multi-pelari.
 
 1. Chat sebagai beranda, atau thread perencana
 2. UI kalender 16 minggu
-3. Strava, Garmin, Apple Health
+3. Strava, Garmin, Apple Health, VO2 lab, VO2 wearable, 5K sebagai isian
 4. Salin / templat / kirim WhatsApp
 5. Auth, tim, roster klub
 6. OCR foto / Log suara
-7. Rebuild tengah minggu dari lari baru
-8. Pustaka interval / workout
-9. Prediktor waktu lomba, VDOT, split
-10. Zona HR, TSS, grafik
-11. Diagnosis, fisioterapi, peta tubuh
-12. Suplemen atau toko
-13. Push notification / sinkron kalender / build toko native
-14. i18n penuh pada aplikasi (Log dwibahasa cukup; chrome UI bahasa Inggris)
-15. Pembayaran, feed sosial, pasar pelatih
+7. Daftar Week lalu, snapshot Senin ini, log undo
+8. Pustaka interval / workout; split ber-pace
+9. Goal lomba, tanggal lomba, Kind `race`, aturan taper / H-7
+10. Kuesioner onboarding, pemilih level, wawancara ulasan mingguan, log harian wajib
+11. Zona HR, TSS, grafik, VDOT, prediktor waktu lomba
+12. Diagnosis, fisioterapi, peta tubuh
+13. Laci Why? (RAG = jejak, bukan panel untuk pelari)
+14. Push notification / sinkron kalender / build toko native
+15. i18n penuh pada aplikasi (Log dwibahasa cukup; chrome UI bahasa Inggris)
+16. Pembayaran, feed sosial, pasar pelatih
+17. Angka VO2 yang disimpan
 
 ---
 
@@ -76,13 +80,15 @@ v1 **bukan** kapten klub, daftar atlet, atau produk multi-pelari.
 
 | Objek | Field | Aturan |
 |---|---|---|
-| **Goal** | `distance`, `raceDate`, `seedTime?` | Satu Goal. Tanggal lomba di masa lalu ditolak. |
 | **Week** | `weekStart` (Senin), `sessions[7]`, `flags[]`, `sourceLog?` | Tepat 7 Session. Tidak ada field teks share. |
-| **Session** | `date`, `kind`, `durationMinutes`, `distanceKm?`, `hard`, `note` | `kind`: `easy` \| `quality` \| `rest` \| `walk` \| `race` |
+| **Session** | `date`, `kind`, `durationMinutes`, `hard`, `note` | `kind`: `easy` \| `quality` \| `rest` \| `walk` |
+| **Log** | teks opsional | Kosong sah. Bukan jurnal harian wajib. |
 
-**Flag (pada Week):** `pain` · `raceThisWeek` · `emptyLog`
+**Flag (pada Week):** `pain` · `emptyLog`
 
-**Hard:** `quality` dan `race` adalah Hard. `easy`, `rest`, `walk` bukan. `hardCount` ≤ 1.
+**Hard:** `quality` adalah Hard. `easy`, `rest`, `walk` bukan. `hardCount` ≤ 1.
+
+Tidak ada **Goal**. Tidak ada Kind `race`. Tidak ada field km. Tidak ada field VO2.
 
 ---
 
@@ -90,16 +96,14 @@ v1 **bukan** kapten klub, daftar atlet, atau produk multi-pelari.
 
 Web mobile-first. Lebar ponsel. Satu kolom.
 
-1. **Board** (beranda): 7 kartu Session untuk Week ini, **selalu Senin–Minggu** (Build di Rabu tetap mengisi Senin dan Selasa). Kosong sampai Build pertama. **Ini artefaknya.**
-2. Field **Goal**: jarak, tanggal lomba, seed time opsional.
-3. Textarea **Log** (tempel opsional).
-4. CTA utama: **Build this week**.
-5. Chip alur (bukan gelembung chat): `parseLog` → `retrieveNotes` → `draftWeek` → `checkWeek` → `saveWeek`.
-6. Banner: nyeri / lomba-minggu-ini / ok.
-7. Ketuk kartu → sunting **Kind**, menit, km opsional, dan catatan. Tanggal tidak bisa diubah. `hard` mengikuti Kind. Suntingan ilegal (**Quality kedua**, **nol Rest/Walk**, Quality saat `pain`) **diblokir**: kartu tidak berubah, banner menjelaskan.
-8. Durasi: Rest = **0** menit (dikosongkan jika Kind jadi Rest). Walk boleh ber menit. Easy / Quality / Race menit **harus > 0** (0 diblokir).
-9. **Week lalu**: daftar di bawah Board (Senin lama). Ketuk untuk melihat Week itu **hanya baca**. Bukan beranda kedua.
-10. Laci **Why?** opsional: mengutip catatan RAG. Tutup kembali ke Board. Laci ini bukan perencana.
+1. **Board** (beranda): 7 kartu Session untuk Week ini, **selalu Senin–Minggu** (Build di Rabu tetap mengisi Senin dan Selasa). Kosong sampai Build pertama. **Ini artefaknya.** Chrome boleh bilang Week ini untuk VO2 max. Itu salinan, bukan widget.
+2. Textarea **Log** (tempel opsional).
+3. CTA utama: **Build this week**.
+4. Chip alur (bukan gelembung chat): `parseLog` → `retrieveNotes` → `draftWeek` → `checkWeek` → `saveWeek`.
+5. Banner: nyeri / ok / ketukan ilegal.
+6. Ketuk kartu → sunting **Kind**, menit, dan catatan. Tanggal tidak bisa diubah. `hard` mengikuti Kind. Suntingan ilegal (**Quality kedua**, **nol Rest/Walk**, Quality saat `pain`, Easy/Quality 0 menit) **diblokir**: kartu tidak berubah, banner menjelaskan.
+7. Durasi: Rest = **0** menit (dikosongkan jika Kind jadi Rest). Walk boleh bermenit. Menit Easy / Quality **harus > 0** (0 diblokir).
+8. Tidak ada daftar Week lalu. Tidak ada laci Why?. Tidak ada isian Goal.
 
 Tidak ada tombol Copy / Share / WhatsApp di v1.
 
@@ -114,21 +118,24 @@ Gagal = banner di Board, bukan percakapan.
 
 | Tool | Fungsi |
 |---|---|
-| `loadGoal` | Baca Goal tersimpan. Gagal jika kosong atau tanggal lomba sudah lewat. |
 | `parseLog` | Uraikan Log ID/EN/campur yang opsional menjadi isyarat: nyeri, Hard baru-baru ini, volume kasar. Log kosong sah. |
 | `retrieveNotes` | RAG lewat MCP `notes` (`searchNotes`, `readNote`). |
 | `draftWeek` | Tulis 7 Session untuk Senin–Minggu ini. |
 | `checkWeek` | Tegakkan aturan produk. Jika gagal, perbaiki atau tolak — jangan kirim Week ilegal. |
-| `saveWeek` | Simpan Week sebagai rekaman server satu pengguna. |
+| `saveWeek` | Simpan Week sebagai rekaman server satu pengguna (menimpa `weekStart` ini). |
 
 `checkWeek` **gagal** jika:
 
 - `hardCount > 1`
 - tidak ada Rest dan tidak ada Walk
 - `pain` dan ada Quality / interval lari
-- lomba-minggu-ini dan ada Session interval
 - jumlah Session ≠ 7
 - ada kalimat diagnosis (“kamu kena X”)
+- catatan Quality berisi pace, zona, atau set×jarak (mis. `5×1000 @ 4:15`)
+- `durationMinutes` Easy atau Quality = 0
+- `durationMinutes` Rest bukan 0
+
+Pembuat boleh menulis prompt model. Prompt bukan objek produk. Ia harus patuh pada kontrak ini atau `checkWeek` menolak draf.
 
 ---
 
@@ -141,48 +148,46 @@ Gagal = banner di Board, bukan percakapan.
 
 **Korpus RAG** (markdown tulisan pembuat saja):
 
-- `easy-pace.md` — pace ngobrol; sebagian besar menit Easy
+- `easy-majority.md` — pace ngobrol; sebagian besar menit Easy
 - `one-hard-day.md` — maks 1 Quality per Week
 - `rest-or-walk.md` — ≥1 Rest atau Walk
 - `pain-gate.md` — isyarat nyeri/cedera → tanpa interval; bukan diagnosis
-- `race-this-week.md` — lomba di Week ini = hari Hard
-- `seed-time-is-easy-cap.md` — seed ≠ target workout
+- `quality-is-a-line.md` — Quality = menit + satu baris bahasa biasa; tanpa pace
 - `log-cues-id-en.md` — isyarat nyeri dan effort ID/EN
 
-Bukan buku berhak cipta. Bukan sumber medis yang disamar sebagai diagnosis.
+Bukan buku berhak cipta. Bukan sumber medis yang disamar sebagai diagnosis. Bukan paket resep pemula/menengah/lanjutan (itu pemilih level).
 
 ---
 
-## 9. Aturan merencanakan (produk, bukan feeling)
+## 9. Aturan (produk, bukan feeling)
 
-- Rencana **Week kalender ini** (Senin–Minggu), bukan 7 hari bergulir, bukan satu musim.
+- Bangun **Week kalender ini** (Senin–Minggu), bukan 7 hari bergulir, bukan satu musim.
 - Mayoritas Session Easy.
-- Durasi **mengutamakan menit**. Km opsional di kartu. Rest/Walk boleh 0 menit.
-- Quality = `kind=quality` plus **catatan satu baris dari agen** (dibatasi RAG, mis. “20 min tempo”). Bukan pemilih workout.
-- Default jika tidak ada Pain dan lomba bukan minggu ini: **selalu tepat 1 Quality**. Jangan menghapus Quality hanya karena Log terasa berat.
+- Durasi **hanya menit**. Tidak ada km di kartu.
+- Quality = `kind=quality` plus **catatan satu baris dari agen** (dibatasi RAG, mis. “20 min hard”). Bukan pemilih workout.
+- Default jika tidak ada Pain: **selalu tepat 1 Quality**. Jangan menghapus Quality hanya karena Log terasa berat.
 - Chrome Board **bahasa Inggris**. Log tetap ID/EN/campur.
-- Pain → 0 Quality, 0 interval; hanya Easy / Walk / Rest.
-- Tanggal lomba ∈ Week ini → paling banyak satu Hard, dan itu `race` (atau shakeout Easy jika Pain).
-- Seed time boleh muncul sebagai petunjuk pace Easy, tidak pernah sebagai `5×1000 @ …`.
+- Pain → 0 Quality, 0 interval lari; hanya Easy / Walk / Rest.
 - Jangan mendiagnosis. Jangan meresepkan obat atau suplemen.
+- Jangan mengarang pace. Tidak ada 5K dan tidak ada angka VO2 untuk memacu.
 
 ---
 
 ## 10. Eval dan observabilitas
 
-**Observabilitas:** satu trace per Build this week. Tiap tool = satu span. Demo menampilkan trace (web lebar ponsel atau panel sempit kedua — bukan chat).
+**Observabilitas:** satu trace per Build this week. Tiap tool = satu span. Demo boleh menampilkan trace (web lebar ponsel atau panel sempit kedua — bukan chat).
 
 **Fixture emas (wajib lulus):**
 
-1. `happy-en` — 10K, ~8 minggu lagi, Log Inggris, tanpa nyeri → 1 Quality, ≥1 Rest/Walk, sisanya Easy.
+1. `happy-en` — Log Inggris, tanpa nyeri → 1 Quality, ≥1 Rest/Walk, sisanya Easy, 7 Session. Catatan Quality tanpa pace.
 2. `pain-lutut` — `Rabu lutut agak nyeri, jalan aja` → `hardCount=0`, tanpa Quality, ada Walk atau Rest, banner nyeri.
 3. `two-hard-draft` — draf mencoba dua hari Quality → `checkWeek` menolak; Week yang dikirim ≤1 Hard.
 4. `no-rest` — 7 Easy/Quality, 0 Rest/Walk → tolak sampai ≥1 Rest atau Walk.
-5. `empty-log` — hanya Goal → Week konservatif, ≤1 Quality, ≥1 Rest/Walk, 7 Session.
-6. `race-in-3-days` — tanggal lomba di Week ini, tanpa nyeri → satu `race` (atau shakeout), 0 interval.
+5. `empty-log` — tanpa Log → Week konservatif, tepat 1 Quality, ≥1 Rest/Walk, 7 Session, tanggal Senin–Minggu untuk `weekStart` ini.
+6. `quality-no-pace` — draf mencoba `5×1000 @ 5K pace` (atau serupa) → `checkWeek` menolak; Quality di Board = menit + bahasa biasa.
 7. `mixed-id-en` — Log campur tetap menghasilkan 7 Session.
 8. `board-has-seven` — Week tersimpan tepat 7 Session, kind berurutan Senin–Minggu.
-9. `seed-not-workout` — seed `55:00` boleh menyinggung pace Easy; tanpa split interval.
+9. `second-build-overwrite` — dua Build di Senin yang sama → satu Week tersimpan; yang kedua menimpa yang pertama.
 10. `sakit-no-dx` — `dada pegal abis lari` → tanpa Quality; keluaran tanpa kalimat diagnosis.
 
 ---
@@ -191,27 +196,29 @@ Bukan buku berhak cipta. Bukan sumber medis yang disamar sebagai diagnosis.
 
 v1 selesai jika semua ini benar:
 
-- [ ] Beranda adalah Board di **web mobile-first**, bukan chat, bukan WhatsApp.
-- [ ] Satu Goal masuk, Week ini keluar, ≤1 Hard, ≥1 Rest atau Walk.
+- [ ] Beranda adalah Board di **web mobile-first**, bukan chat, bukan WhatsApp, bukan laci Why?.
+- [ ] Log kosong tetap menghasilkan Week ini, ≤1 Hard, ≥1 Rest atau Walk, tujuh kartu bertanggal.
 - [ ] Log nyeri → tanpa Quality / interval, ada banner — dan tanpa diagnosis.
 - [ ] Board menampilkan 7 Session Senin–Minggu.
-- [ ] `BuildThisWeek` menjalankan 6 tool bernama dalam satu trace.
+- [ ] Suntingan kartu yang merusak aturan tidak menempel.
+- [ ] `BuildThisWeek` menjalankan 5 tool bernama dalam satu trace.
 - [ ] MCP `notes` + catatan RAG benar-benar diambil (bukti span).
 - [ ] 10 fixture emas lulus.
 - [ ] Demo 60 detik di bawah bisa dijalankan di browser lebar ponsel tanpa chat perencana.
+- [ ] Tidak ada isian Goal, tidak ada angka 5K/lab/VO2, tidak ada daftar Week lalu.
 
 ---
 
 ## 12. Demo 60 detik
 
-0:00 Browser lebar ponsel. Beranda = Board kosong. Bukan chat.  
-0:05 Goal: **10K · 8 Jun · seed 55:00**.  
-0:12 Tempel Log: `Senin 8k pelan. Rabu lutut agak nyeri jadi jalan. Jumat 5k.`  
-0:18 Ketuk **Build this week**. Chip menyala.  
-0:28 Board: Easy / Walk / Easy / Rest / Easy / Easy / Easy. **Tanpa Quality.** Banner: nyeri → tanpa Hard.  
-0:40 Gulir 7 kartu. Menit (+ km jika ada) terlihat.  
-0:48 Laci **Why?** mengutip `pain-gate.md`. Tutup.  
-0:55 Buka trace: 6 span tool.  
+0:00 Browser lebar ponsel. Beranda = Board kosong. Chrome: for VO2 max. Bukan chat.
+0:08 Biarkan Log kosong. Ketuk **Build this week**. Chip menyala.
+0:18 Board: 7 kartu bertanggal Sen–Min. Satu Quality, ≥1 Rest atau Walk, sisanya Easy. Catatan Quality tanpa pace.
+0:28 Ketuk kartu. Easy → Rest. Menempel. Menit jadi 0.
+0:35 Ketuk kartu lain menjadi Quality kedua. Diblokir. Banner.
+0:42 Tempel Log: `Rabu lutut agak nyeri jadi jalan.` Ketuk **Build this week** (menimpa).
+0:52 Board: tanpa Quality. Walk atau Rest. Banner nyeri. Tanpa kalimat diagnosis.
+0:58 Buka trace: 5 span tool.
 1:00 Selesai. Jangan buka WhatsApp.
 
 ---
@@ -221,16 +228,16 @@ v1 selesai jika semua ini benar:
 | Syarat | Di mana |
 |---|---|
 | PRD sebelum kode | `document/PRD.en.md`, `document/PRD.id.md` |
-| Agen dengan tool kata kerja (4–6) | `Weeksmith` + 6 tool di atas |
+| Agen dengan tool kata kerja (4–6) | `Weeksmith` + 5 tool di atas |
 | MCP dan RAG | MCP `notes` + markdown `/notes` |
 | Eval dan jejak | §10 |
 | ≥1 alur agen + 1 agen AI | `BuildThisWeek` + `Weeksmith` |
-| Beranda bukan chat | Board; **Why?** opsional |
+| Beranda bukan chat | Board; banner saja |
 
 ---
 
 ## 14. Nanti (bukan v1)
 
-Kalender 16 minggu · Strava/Garmin · salin/kirim WhatsApp · aplikasi toko native · multi-pelari · adaptasi tengah minggu · pustaka workout · prediktor lomba · OCR · zona HR · diagnosis/fisio/toko.
+Kalender 16 minggu · Strava/Garmin/VO2 lab · uji 5K · Goal lomba · salin/kirim WhatsApp · aplikasi toko native · multi-pelari · adaptasi tengah minggu selain timpa · pustaka workout · prediktor lomba · OCR · zona HR · laci Why? · Week lalu · diagnosis/fisio/toko.
 
-Semua itu hanya memakai ulang `Goal` / `Week` / `Session`. Jangan membuat objek v1 baru untuk mereka.
+Semua itu hanya memakai ulang `Week` / `Session`. Jangan membuat objek v1 baru untuk mereka.
