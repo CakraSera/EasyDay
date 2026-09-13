@@ -1,12 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { createFileRoute } from "@tanstack/react-router";
 import Banner, { type BannerTone } from "@/components/Banner";
 import EditSheet from "@/components/EditSheet";
 import SessionCard from "@/components/SessionCard";
@@ -23,7 +16,6 @@ import {
   type Week,
 } from "@/lib/domain";
 import { loadWeek, saveWeek } from "@/lib/store";
-import { palette, radius } from "@/lib/theme";
 import {
   runBuildThisWeek,
   type Span,
@@ -35,7 +27,11 @@ interface BannerState {
   text: string;
 }
 
-export default function Index() {
+export const Route = createFileRoute("/")({
+  component: Board,
+});
+
+function Board() {
   const [log, setLog] = useState("");
   const [week, setWeek] = useState<Week | null>(() => loadWeek());
   const [building, setBuilding] = useState(false);
@@ -111,67 +107,61 @@ export default function Index() {
   );
 
   return (
-    <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <Text style={styles.tagline}>This week is for VO₂ max — mostly Easy, one Quality, one Rest or Walk.</Text>
-      </View>
+    <main className="mx-auto flex w-full max-w-[480px] flex-col gap-3.5 px-4 py-4">
+      <p className="mt-2 text-[13px] leading-[18px] text-muted">
+        This week is for VO₂ max — mostly Easy, one Quality, one Rest or Walk.
+      </p>
 
-      <View style={styles.weekHeader}>
-        <Text style={styles.weekTitle}>This Week</Text>
-        <Text style={styles.weekRange}>{formatRange(weekStart)}</Text>
-      </View>
+      <div className="mt-1.5 flex items-baseline justify-between">
+        <h1 className="text-[17px] font-bold text-ink">This Week</h1>
+        <p className="text-[13px] text-muted">{formatRange(weekStart)}</p>
+      </div>
 
-      {banner ? (
-        <View style={styles.bannerSlot}>
-          <Banner tone={banner.tone} text={banner.text} />
-        </View>
-      ) : null}
+      {banner ? <Banner tone={banner.tone} text={banner.text} /> : null}
 
       {week ? (
-        <View style={styles.board}>
+        <div className="flex flex-col gap-2.5">
           {week.sessions.map((session, i) => (
-            <Pressable key={session.date} onPress={() => setEditingIndex(i)} disabled={building}>
-              <SessionCard
-                kind={session.kind}
-                minutes={session.durationMinutes}
-                note={session.note}
-                date={session.date}
-                dayIndex={i}
-                disabled={building}
-                onTap={() => undefined}
-              />
-            </Pressable>
+            <SessionCard
+              key={session.date}
+              kind={session.kind}
+              minutes={session.durationMinutes}
+              note={session.note}
+              date={session.date}
+              dayIndex={i}
+              disabled={building}
+              onTap={() => setEditingIndex(i)}
+            />
           ))}
-        </View>
+        </div>
       ) : (
-        <View style={styles.empty}>
-          <Text style={styles.emptyTitle}>No week yet</Text>
-          <Text style={styles.emptyBody}>
+        <div className="flex flex-col gap-1.5 rounded-card border border-dashed border-border bg-surface p-5">
+          <p className="text-[15px] font-bold text-ink">No week yet</p>
+          <p className="text-[13px] leading-[19px] text-muted">
             Paste a messy Log below (or leave it empty), then tap Build this week. Seven cards,
             Monday to Sunday, always.
-          </Text>
-        </View>
+          </p>
+        </div>
       )}
 
-      <View style={styles.logSection}>
-        <Text style={styles.sectionLabel}>Log (optional)</Text>
-        <TextInput
-          style={styles.logInput}
-          multiline
+      <section className="mt-1 flex flex-col gap-2">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted">Log (optional)</p>
+        <textarea
+          className="min-h-[72px] rounded-control border border-border bg-surface p-3 text-sm text-ink placeholder:text-faint"
           placeholder="e.g. Rabu lutut agak nyeri, jalan aja. Selasa 40 menit gampang."
-          placeholderTextColor={palette.faint}
           value={log}
-          onChangeText={setLog}
+          onChange={(event) => setLog(event.target.value)}
         />
-        <Pressable
-          style={[styles.cta, building && styles.ctaBusy]}
-          onPress={build}
+        <button
+          type="button"
+          className="rounded-control bg-ink py-3.5 text-[15px] font-bold text-white disabled:opacity-60"
+          onClick={build}
           disabled={building}
         >
-          <Text style={styles.ctaLabel}>{building ? "Building…" : "Build this week"}</Text>
-        </Pressable>
+          {building ? "Building…" : "Build this week"}
+        </button>
         <WorkflowChips statuses={statuses} />
-      </View>
+      </section>
 
       <TraceSection spans={spans} running={building} />
 
@@ -179,63 +169,15 @@ export default function Index() {
         session={editing}
         dayIndex={editingIndex ?? 0}
         painFlag={week?.flags.includes("pain") ?? false}
-        onApply={(kind, minutes, note) => editingIndex !== null && applyEdit(editingIndex, kind, minutes, note)}
+        onApply={(kind, minutes, note) =>
+          editingIndex !== null && applyEdit(editingIndex, kind, minutes, note)
+        }
         onClose={() => setEditingIndex(null)}
       />
 
-      <Text style={styles.footer}>
+      <p className="mb-6 text-center text-[11px] text-faint">
         {DAY_SHORT.join(" · ")} — one week at a time. No past weeks, no chat, no diagnosis.
-      </Text>
-    </ScrollView>
+      </p>
+    </main>
   );
 }
-
-const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: palette.bg },
-  content: { padding: 16, gap: 14, maxWidth: 480, width: "100%", alignSelf: "center" },
-  header: { gap: 4, marginTop: 8 },
-  tagline: { fontSize: 13, color: palette.muted, lineHeight: 18 },
-  weekHeader: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", marginTop: 6 },
-  weekTitle: { fontSize: 17, fontWeight: "700", color: palette.ink },
-  weekRange: { fontSize: 13, color: palette.muted },
-  bannerSlot: { gap: 0 },
-  board: { gap: 10 },
-  empty: {
-    backgroundColor: palette.surface,
-    borderRadius: radius.card,
-    borderWidth: 1,
-    borderStyle: "dashed",
-    padding: 20,
-    gap: 6,
-  },
-  emptyTitle: { fontSize: 15, fontWeight: "700", color: palette.ink },
-  emptyBody: { fontSize: 13, color: palette.muted, lineHeight: 19 },
-  logSection: { gap: 8, marginTop: 4 },
-  sectionLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: palette.muted,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  logInput: {
-    backgroundColor: palette.surface,
-    borderWidth: 1,
-    borderColor: palette.border,
-    borderRadius: radius.control,
-    minHeight: 72,
-    padding: 12,
-    fontSize: 14,
-    color: palette.ink,
-    textAlignVertical: "top",
-  },
-  cta: {
-    backgroundColor: palette.ink,
-    borderRadius: radius.control,
-    paddingVertical: 14,
-    alignItems: "center",
-  },
-  ctaBusy: { opacity: 0.6 },
-  ctaLabel: { color: "#FFFFFF", fontSize: 15, fontWeight: "700" },
-  footer: { fontSize: 11, color: palette.faint, textAlign: "center", marginBottom: 24 },
-});
