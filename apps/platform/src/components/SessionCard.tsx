@@ -1,4 +1,4 @@
-import { KIND_LABEL, type Kind } from "@/lib/domain";
+import { KIND_LABEL, type Kind } from "@runmax/domain";
 import { kindStyle } from "@/lib/theme";
 
 const SWATCH: Record<Kind, string> = {

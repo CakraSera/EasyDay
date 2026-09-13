@@ -11,7 +11,7 @@ import {
   type LogCues,
   type Session,
   type Week,
-} from "./domain";
+} from "@runmax/domain";
 
 export const TOOLS = [
   "parseLog",
