@@ -8,6 +8,8 @@ import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { getAgent } from './agent.js'
 import { DEMO_USER_ID } from './db.js'
+import { authRoute } from './modules/auth/route.js'
+
 import { RequestRejected, readChatRequest } from './request.js'
 import { recordTurn } from './store.js'
 
@@ -43,6 +45,7 @@ function eventsToStream(events: readonly ClientStreamEvent[]): AsyncIterable<Cli
   return run()
 }
 app.get('/health', (context) => context.json({ ok: true }))
+app.route('/auth', authRoute)
 
 app.post('/api/chat', async (context) => {
   // PRD v1 (ADR 0002): single implicit user `demo`, no auth in v1. The userId

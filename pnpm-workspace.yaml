@@ -9,3 +9,4 @@ allowBuilds:
   '@embedded-postgres/linux-x64': true
   '@prisma/engines': true
   prisma: true
+  argon2: true

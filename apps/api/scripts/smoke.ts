@@ -7,8 +7,11 @@ import { setTimeout as delay } from 'node:timers/promises'
 // Exercise the chat route contract without a provider key:
 //   413 body too large, 400 invalid JSON, 400 wrong protocol shape,
 //   400 non-text messages, 400 last message not user, 200 health.
-// With a key set, also proves the streaming path end to end.
+config({ path: '.env', quiet: true })
+// Deterministic throwaway signing secret: smoke only proves the auth flow.
+process.env.TOKEN_SECRET_KEY ??= 'smoke-only-secret'
 
+// With a key set, the script also proves the streaming path end to end.
 const BASE = `http://127.0.0.1:${process.env.PORT ?? 8787}`
 
 const child = spawn('pnpm', ['exec', 'tsx', 'src/server.ts'], {
@@ -111,6 +114,87 @@ try {
       )
     ).status,
     400,
+  )
+
+  // --- auth flow ---
+  // Deterministic address so re-runs hit the same (existing) account: the
+  // second register fails with 400, which is itself a check.
+  const email = `smoke-${new Date().toISOString().slice(0, 10)}@easyday.test`
+  const password = 'correct horse battery staple'
+
+  const register = (payload: unknown) =>
+    fetch(`${BASE}/auth/register`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+
+  const firstRegister = await register({
+    fullName: 'Smoke Runner',
+    username: `smoke-${Date.now()}`,
+    email,
+    password,
+  })
+  const fresh = firstRegister.status === 201
+  if (!fresh) {
+    // Day already registered this address: only password login is checked.
+    console.log('NOTE register: account already exists, skipping to login')
+  }
+  await expect('register 201-or-known-account', firstRegister.status, fresh ? 201 : 400)
+
+  const loginRes = await fetch(`${BASE}/auth/login`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  })
+  const { token } = (await loginRes.json()) as { token: string }
+  await expect('login token shape', typeof token === 'string' && token.length > 20 ? 1 : 0, 1)
+
+  await expect(
+    'login unknown email 404',
+    (
+      await fetch(`${BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email: 'nobody@easyday.test', password }),
+      })
+    ).status,
+    404,
+  )
+
+  await expect(
+    'login wrong password 400',
+    (
+      await fetch(`${BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email, password: 'wrong-password' }),
+      })
+    ).status,
+    400,
+  )
+
+  const me = await fetch(`${BASE}/auth/me`, {
+    headers: { authorization: `Bearer ${token}` },
+  })
+  await expect('me with token', me.status, 200)
+  const meBody = (await me.json()) as { email?: string }
+  await expect('me email matches', meBody.email === email ? 1 : 0, 1)
+
+  await expect(
+    'me without token 401',
+    (await fetch(`${BASE}/auth/me`)).status,
+    401,
+  )
+
+  await expect(
+    'me garbage token 401',
+    (
+      await fetch(`${BASE}/auth/me`, {
+        headers: { authorization: 'Bearer not-a-jwt' },
+      })
+    ).status,
+    401,
   )
 
   if (process.env.OPENAI_API_KEY) {
