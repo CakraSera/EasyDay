@@ -1,4 +1,4 @@
-import { KINDS, KIND_LABEL, type Kind } from "@/lib/domain";
+import { KINDS, KIND_LABEL, type Kind } from "@runmax/domain";
 import { kindStyle } from "@/lib/theme";
 
 interface Props {

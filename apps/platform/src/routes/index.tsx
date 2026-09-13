@@ -14,7 +14,7 @@ import {
   weekSummary,
   type Kind,
   type Week,
-} from "@/lib/domain";
+} from "@runmax/domain";
 import { loadWeek, saveWeek } from "@/lib/store";
 import {
   runBuildThisWeek,

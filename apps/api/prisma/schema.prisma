@@ -1,0 +1,22 @@
+// RunMax persistence (PRD §5, ADR 0010/0011): the single user `demo` record
+// — this Week plus its optional source Log. Rebuild overwrites this Monday;
+// older Mondays are not kept, so weekStart is unique per user.
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model WeekRecord {
+  id        String   @id @default(cuid())
+  userId    String
+  weekStart DateTime @db.Date
+  week      Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, weekStart])
+}

@@ -1,15 +1,34 @@
 {
-  "name": "@easyday/agent",
+  "name": "@runmax/agent",
   "version": "1.0.0",
+  "description": "Weeksmith agent and BuildThisWeek workflow for RunMax",
   "private": true,
   "type": "module",
   "exports": {
     ".": "./src/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "runner:dev": "pnpm with-env tsx ./src/runner-dev.ts",
+    "evals": "pnpm with-env tsx ./src/evals/run.ts",
+    "studio": "pnpm with-env tsx ./src/studio.ts",
+    "notes:dev": "pnpm with-env tsx ./src/notes/server.ts",
+    "with-env": "dotenv -e ../../.env --"
+  },
+  "dependencies": {
+    "@anvia/core": "^1.3.0",
+    "@anvia/langfuse": "^1.1.4",
+    "@anvia/mcp": "^1.1.3",
+    "@anvia/openai": "^1.1.3",
+    "@anvia/studio": "^1.2.2",
+    "@modelcontextprotocol/client": "^2.0.0",
+    "@modelcontextprotocol/server": "^2.0.0",
+    "@runmax/domain": "workspace:*",
+    "zod": "^4.6.2"
   },
   "devDependencies": {
+    "@types/node": "^26.1.1",
+    "tsx": "^4.23.1",
     "typescript": "~5.9.2"
   }
 }

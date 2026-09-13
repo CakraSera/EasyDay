@@ -1,7 +1,11 @@
 allowBuilds:
+  '@prisma/engines': true
+  prisma: true
   unrs-resolver: true
   esbuild: true
   lightningcss: true
 packages:
   - "apps/**"
   - "packages/**"
+
+minimumReleaseAge: 0

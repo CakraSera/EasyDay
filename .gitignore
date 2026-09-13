@@ -23,3 +23,6 @@ pnpm-debug.log*
 *.tsbuildinfo
 
 app-example
+
+# local server data
+.data/

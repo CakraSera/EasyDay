@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@runmax/domain": "workspace:*",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-router": "^1.132.0",
     "react": "^19.2.0",
