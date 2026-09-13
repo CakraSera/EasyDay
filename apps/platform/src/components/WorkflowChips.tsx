@@ -1,4 +1,3 @@
-import { StyleSheet, Text, View } from "react-native";
 import { TOOLS, type ToolStatus } from "@/lib/weeksmith";
 import { palette } from "@/lib/theme";
 
@@ -23,25 +22,22 @@ const COLOR: Record<ToolStatus, string> = {
 /** Workflow chips lighting up in order during Build (PRD §6.4). */
 export default function WorkflowChips({ statuses }: Props) {
   return (
-    <View style={styles.wrap}>
+    <div className="flex flex-wrap gap-x-1 gap-y-1.5">
       {TOOLS.map((tool, i) => {
         const status = statuses[tool] ?? "pending";
         return (
-          <View key={tool} style={styles.item}>
-            {i > 0 ? <Text style={[styles.arrow, { color: COLOR[status] }]}>→</Text> : null}
-            <Text style={[styles.chip, { color: COLOR[status] }]}>
+          <span key={tool} className="flex items-center">
+            {i > 0 ? (
+              <span className="mx-1 text-xs" style={{ color: COLOR[status] }}>
+                →
+              </span>
+            ) : null}
+            <span className="text-xs font-semibold" style={{ color: COLOR[status] }}>
               {MARK[status]} {tool}
-            </Text>
-          </View>
+            </span>
+          </span>
         );
       })}
-    </View>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  wrap: { flexDirection: "row", flexWrap: "wrap", gap: 4, rowGap: 6 },
-  item: { flexDirection: "row", alignItems: "center" },
-  arrow: { marginHorizontal: 4, fontSize: 12 },
-  chip: { fontSize: 12, fontWeight: "600", fontFamily: undefined },
-});

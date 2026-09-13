@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #fafaf8;
+  --color-surface: #ffffff;
+  --color-ink: #1b1e23;
+  --color-muted: #737a82;
+  --color-faint: #a9afb6;
+  --color-border: #e8e6e1;
+  --color-ok: #177a46;
+  --color-ok-tint: #eaf6ef;
+  --color-ok-border: #bfe3cd;
+  --color-warn: #9a6208;
+  --color-warn-tint: #fdf4e0;
+  --color-danger: #b3392f;
+  --color-danger-tint: #fbedea;
+  --color-info: #5b6472;
+  --color-info-tint: #f1f3f5;
+  --color-easy: #1e7f4f;
+  --color-easy-tint: #eaf6ef;
+  --color-easy-border: #cde8d8;
+  --color-quality: #9a6208;
+  --color-quality-tint: #fdf4e0;
+  --color-quality-border: #f0dca8;
+  --color-rest: #6b7280;
+  --color-rest-tint: #f3f4f6;
+  --color-rest-border: #e3e5e9;
+  --color-walk: #2a5fa8;
+  --color-walk-tint: #ebf2fc;
+  --color-walk-border: #c9dcf4;
+  --radius-card: 16px;
+  --radius-sheet: 22px;
+  --radius-control: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+}
