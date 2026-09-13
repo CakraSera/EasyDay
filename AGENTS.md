@@ -1,22 +1,18 @@
 # Repository Guidelines
 
-Expo **HAS CHANGED**. Read the exact versioned docs at https://docs.expo.dev/versions/v54.0.0/ before writing any code.
-
 `CLAUDE.md` is `@AGENTS.md` — this file is the single assistant brief.
 
 ## Project Overview
 
-**RunMax** (Expo app still named EasyDay) is a runner’s **this Week** of running from an optional messy **Log**, shown as a **Board** on mobile-first Expo web. **VO2 max** is why-copy only. Not a 16-week calendar, not a chatbot, not a clinic, not WhatsApp, not a race Goal.
+**RunMax** (repo still named EasyDay) is a runner’s **this Week** of running from an optional messy **Log**, shown as a **Board** on mobile-first web. **VO2 max** is why-copy only. Not a 16-week calendar, not a chatbot, not a clinic, not WhatsApp, not a race Goal.
 
 Canonical terms live in [`CONTEXT.md`](CONTEXT.md). Use those words in code, evals, and UI copy. Honor each term’s **Avoid** list (no “plan”, “workout”, “calendar”, “chatbot”, “generate”, …).
 
 v1 scope is locked in [`document/PRD.en.md`](document/PRD.en.md) (Indonesian twin: [`document/PRD.id.md`](document/PRD.id.md); object names stay English). Decisions: [`docs/adr/`](docs/adr/).
 
-**Live code is still a blank Expo SDK 54 reset.** Spec is ahead of implementation. Build the Board at `/`; do not treat `app-example/` as product code.
-
 ## Architecture & Data Flow
 
-**Intended (PRD §7, unimplemented):**
+**Intended (PRD §7):** the chat agent (`/api/chat`, streaming) is live in `apps/api`; the Week/Board workflow is still FE mock only:
 
 ```
 optional Log  →  Build this week  →  Weeksmith / BuildThisWeek
@@ -33,7 +29,15 @@ optional Log  →  Build this week  →  Weeksmith / BuildThisWeek
 
 **Actual (today):**
 
-`package.json` `"main": "expo-router/entry"` → [`app/_layout.tsx`](app/_layout.tsx) (bare `<Stack />`) → [`app/index.tsx`](app/index.tsx) (placeholder). No providers, no data layer, no Weeksmith, no persistence.
+pnpm workspace:
+
+```
+apps/platform   FE — Vite + TanStack Router Board
+apps/api        BE — structure only
+packages/agent  AI — structure only (`@easyday/agent`)
+```
+
+Board lives at [`apps/platform/src/routes/index.tsx`](apps/platform/src/routes/index.tsx). Mock Weeksmith is [`apps/platform/src/lib/weeksmith.ts`](apps/platform/src/lib/weeksmith.ts). Persistence is an in-memory module in `apps/platform/src/lib/store.ts`.
 
 Load-bearing product rules (enforce in `checkWeek` and at card-tap; never render an illegal Week):
 
@@ -46,75 +50,67 @@ Load-bearing product rules (enforce in `checkWeek` and at card-tap; never render
 - Illegal Kind edits blocked at tap with a banner ([ADR 0007](docs/adr/0007-checkweek-blocks-illegal-edits.md)).
 - No past Weeks list ([ADR 0011](docs/adr/0011-no-past-weeks.md)).
 
-v1 surface is **Expo 54 web, phone width** ([ADR 0004](docs/adr/0004-web-mobile-first.md)). No store builds, no WhatsApp ([ADR 0003](docs/adr/0003-board-only-no-whatsapp.md)).
+v1 surface is **web, phone width** ([ADR 0004](docs/adr/0004-web-mobile-first.md)). No store builds, no WhatsApp ([ADR 0003](docs/adr/0003-board-only-no-whatsapp.md)).
 
 ## Key Directories
 
 | Path | Role |
 |---|---|
-| `app/` | **Live** expo-router routes. Only `_layout.tsx` and `index.tsx` today. New screens = new files here. Board belongs at `/`. |
-| `app-example/` | Leftover create-expo-app starter (tabs demo, themed components). **Not product code.** Gitignored. Do not import from it. |
-| `assets/images/` | Expo config icons/splash/favicon only. Do not use leftover `react-logo*.png` in product UI. |
+| `apps/platform/` | **FE** — Vite + TanStack Router Board (`name: platform`). |
+| `apps/platform/src/routes/` | File routes. Board is `/`. |
+| `apps/platform/src/components/` | Board chrome. |
+| `apps/platform/src/lib/` | Domain, mock Weeksmith, store, theme. |
+| `apps/api/` | **BE** — live server package (`name: api`): Hono + Prisma chat service. Weeksmith workflow not yet wired. |
+| `packages/agent/` | **AI** — Weeksmith package (`name: @easyday/agent`). Structure only. |
 | `document/` | Bilingual PRD. Update **both** `PRD.en.md` and `PRD.id.md`. |
 | `docs/adr/` | Short title+rationale ADRs `0001`–`0014`. New architecture → next `00NN-kebab.md`. |
-| `scripts/reset-project.js` | Destructive Expo scaffold reset. **Do not run.** |
-| `src/` | Agent server (Hono + Prisma + Weeksmith): `src/server.ts`, `src/agent.ts`. Typecheck with `pnpm run build`. |
-| `prisma/` | Schema + migrations for the server's PostgreSQL store. |
+| `apps/api/src/` | Live agent server: Hono (`server.ts`), Weeksmith chat (`agent.ts`), Prisma store (`store.ts`, `db.ts`). |
+| `apps/api/prisma/` | Schema + migrations for the server's PostgreSQL store. |
+| `apps/api/scripts/` | `dev-db.ts` (embedded Postgres) and `smoke.ts` (route contract checks). |
 
-No root `components/`, `hooks/`, `lib/`, or `stores/` yet. When added, keep them at repo root so `@/` aliases work (`@/*` → `./*`).
-Root `src/`, `prisma/` belong to the agent server; `app/` is the Expo app. Both live at repo root. `@/` aliases still resolve from repo root (`@/*` → `./*`).
+`app-example/` is leftover create-expo-app starter. Gitignored. Do not import from it.
 
 ## Development Commands
 
-Package manager is **pnpm** (`pnpm-lock.yaml` v9). Never npm/yarn/bun.
+Package manager is **pnpm**. Never npm/yarn/bun. Install from the **repo root**.
 
 ```bash
 pnpm install
-pnpm start                 # expo start
-pnpm run web               # expo start --web  (v1 target)
-pnpm run android           # expo start --android
-pnpm run ios               # expo start --ios
-pnpm run lint              # expo lint
-pnpm exec tsc --noEmit     # Expo app typecheck (root tsconfig.json)
-pnpm run build            # agent server typecheck (tsconfig.server.json, emits dist/)
-pnpm run dev              # agent server: tsx watch src/server.ts
-pnpm run db:up            # embedded dev PostgreSQL
-pnpm run db:migrate       # prisma migrate dev
-pnpm run smoke            # end-to-end server smoke test
+pnpm start                 # Vite on http://localhost:3000
+pnpm web                   # same
+pnpm typecheck             # all workspace packages
+pnpm --filter api dev      # agent server: tsx watch src/server.ts
+pnpm --filter api db:up    # embedded dev PostgreSQL (port 54329)
+pnpm --filter api db:migrate
+pnpm --filter api smoke    # server route contract checks
 ```
-
-**Never** `pnpm run reset-project` — it moves/deletes `app/`, `components/`, `hooks/`, `constants/`, and `scripts/` (including itself).
 
 No `test` script exists.
 
 ## Code Conventions & Common Patterns
 
-- **Language:** TypeScript `strict`. Default-export named function components per route (`RootLayout`, `Index`). Double quotes. Inline style objects in the placeholder; prefer `StyleSheet.create` for real UI.
-- **Routing:** expo-router v6 file-based. `experiments.typedRoutes: true` — typed `href`s. New route = file under `app/`.
-- **Imports:** `@/foo` maps to repo root (`tsconfig.json` `paths`).
-- **React Compiler** is on (`app.json` `experiments.reactCompiler`). Do not add needless `useMemo`/`useCallback`.
-- **Web first:** every screen must work on `react-native-web`. Phone-width, one column. UI chrome is English; Logs may be ID/EN/mixed.
+- **Language:** TypeScript `strict`. Default-export named function components. Double quotes.
+- **Routing:** TanStack Router file routes under `apps/platform/src/routes/`. `routeTree.gen.ts` is generated — do not hand-edit after `pnpm --filter platform generate-routes`.
+- **Imports:** `@/foo` maps to `apps/platform/src/` (`apps/platform/tsconfig.json` `paths`).
+- **Styling:** Tailwind CSS 4. Phone-width, one column (`max-w-[480px]`). UI chrome is English; Logs may be ID/EN/mixed.
 - **Domain naming in identifiers and copy:** `Week`, `Session`, `kind`, `hard`, `Log`, `Pain`, `Board`, `Weeksmith`, `BuildThisWeek`. Kind values: `easy` \| `quality` \| `rest` \| `walk`. No `Goal`, no `race`.
-- **State / DI:** none in live code. When added: Week + optional Log on the agent server (`demo`), not device-only storage ([ADR 0010](docs/adr/0010-week-and-log-not-goal.md)). Keep root layout provider-minimal until needed.
+- **State / DI:** Week + optional Log belong on the agent server (`demo`), not device-only storage ([ADR 0010](docs/adr/0010-week-and-log-not-goal.md)). Persistence is live in `apps/api` (Prisma/PostgreSQL); the Board still talks to the in-memory mock store until wired to the server.
 - **Errors:** Board banner, not a conversation. `checkWeek` fails closed (never ship `hardCount > 1`, 0 Rest/Walk, pain+Quality, ≠7 Sessions, a pace in the Quality note, or a diagnosis sentence).
-- **Async:** none yet. BuildThisWeek tools should be verb-named functions, one span each, one trace per Build.
-- **Native dirs:** `/ios` and `/android` are gitignored (CNG). Config lives in `app.json`. Do not hand-edit generated native folders.
-- **Do not edit** generated `expo-env.d.ts` (gitignored).
-
-Template leftovers under `app-example/` (kebab-case files, `.ios.tsx` / `.web.ts` suffixes, themed wrappers) are **reference only**.
+- **Async:** BuildThisWeek tools should be verb-named functions, one span each, one trace per Build.
 
 ## Important Files
 
 | File | Why |
 |---|---|
-| `app/_layout.tsx` | Root layout / providers. |
-| `app/index.tsx` | Home — replace with Board. |
-| `package.json` | `name: easyday`, `main: expo-router/entry`. |
-| `tsconfig.server.json` | Agent server: NodeNext strict, `src/**`, emits `dist/`. |
-| `prisma/schema.prisma` | Server persistence schema. |
-| `app.json` | Identity: name `EasyDay`, slug/scheme `easyday`. `newArchEnabled`, typedRoutes, reactCompiler. |
-| `tsconfig.json` | `strict`, `@/*`, include **only** `app/**` + `.expo/types` + `expo-env.d.ts`. |
-| `eslint.config.js` | ESLint 9 flat + `eslint-config-expo/flat`; ignores `dist/*`. |
+| `apps/platform/src/routes/__root.tsx` | Root layout / header. |
+| `apps/platform/src/routes/index.tsx` | Home — Board. |
+| `apps/platform/src/lib/domain.ts` | `checkWeek` and Week/Session types. |
+| `apps/platform/src/lib/weeksmith.ts` | Mock BuildThisWeek workflow. |
+| `apps/api/src/server.ts` | Hono server: `/health` + `/api/chat`. |
+| `apps/api/prisma/schema.prisma` | Server persistence schema. |
+| `apps/api/scripts/smoke.ts` | Route contract checks (413/400/200). |
+| `package.json` | Workspace root `name: easyday`. Scripts filter to `platform`. |
+| `apps/platform/package.json` | Vite app `name: platform`. |
 | `CONTEXT.md` | Domain language. |
 | `document/PRD.en.md` | v1 scope, tools, evals, acceptance. |
 | `docs/adr/*.md` | Binding product decisions. |
@@ -123,18 +119,13 @@ Template leftovers under `app-example/` (kebab-case files, `.ios.tsx` / `.web.ts
 
 | Item | Pin |
 |---|---|
-| Expo | SDK **54** (`expo ~54.0.36`, lockfile 54.0.37) |
-| React Native | `0.81.5` |
-| React | `19.1.0` |
-| expo-router | `~6.0.24` |
+| Frontend | Vite 8 + TanStack Router + React 19 + Tailwind CSS 4 |
 | TypeScript | `~5.9.2` |
-| ESLint | 9 + `eslint-config-expo ~10.0.0` |
-| Package manager | **pnpm** (`engines.node >= 22.18`; no `packageManager` field) |
+| Package manager | **pnpm** |
 | Server runtime | Node ≥ 22.18, Hono + @hono/node-server, Prisma 7 + @prisma/adapter-pg |
-| Architecture | New Architecture on; Android edge-to-edge |
-| Docs | https://docs.expo.dev/versions/v54.0.0/ **only** — do not use unversioned or other-SDK pages |
+| Docs (TanStack Router) | https://tanstack.com/router/latest |
 
-`pnpm-workspace.yaml` is **not** a multi-package workspace — it only allowlists postinstall builds (`unrs-resolver`, `@embedded-postgres/linux-x64`, `@prisma/engines`, `esbuild`, `prisma`). Expo app and agent server share the single root package.
+`pnpm-workspace.yaml` members: `apps/**`, `packages/**`. FE `apps/platform`, BE `apps/api`, AI `packages/agent`. `allowBuilds` additionally allowlists `@embedded-postgres/linux-x64`, `@prisma/engines`, and `prisma` postinstall scripts.
 
 ## Testing & QA
 
@@ -144,7 +135,6 @@ When adding tests:
 
 - Highest value is **pure rule logic** from CONTEXT.md / ADRs: 7 Sessions, `hardCount ≤ 1`, Rest/Walk gate, pain gate, duration-by-kind, Quality one-line, overwrite this Monday.
 - PRD §10 golden fixtures (must pass for v1): `happy-en`, `pain-lutut`, `two-hard-draft`, `no-rest`, `empty-log`, `quality-no-pace`, `mixed-id-en`, `board-has-seven`, `second-build-overwrite`, `sakit-no-dx`.
-- Natural stack for Expo 54: `jest-expo` + `@testing-library/react-native`.
 - Observability: one trace per Build; each tool = one span.
 
-Until then, gate changes with `pnpm run lint` and `pnpm exec tsc --noEmit`.
+Until then, gate changes with `pnpm --filter platform typecheck`.

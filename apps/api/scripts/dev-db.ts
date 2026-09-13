@@ -29,7 +29,10 @@ if (command === 'up') {
     console.log(`[dev-db] initialised cluster in ${dir}`)
   }
   await pg.start()
-  await pg.createDatabase(database)
+  await pg.createDatabase(database).catch((e) => {
+    if (e?.code === '42P04') return // database already exists
+    throw e
+  })
   console.log(`[dev-db] postgres ready on 127.0.0.1:${port} db=${database}`)
   console.log(`[dev-db] DATABASE_URL=postgresql://${user}:${password}@127.0.0.1:${port}/${database}`)
   // Keep the process attached so the server keeps running; Ctrl+C stops it.

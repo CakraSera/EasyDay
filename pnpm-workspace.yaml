@@ -1,6 +1,11 @@
+packages:
+  - "apps/**"
+  - "packages/**"
+
 allowBuilds:
   unrs-resolver: true
+  esbuild: true
+  lightningcss: true
   '@embedded-postgres/linux-x64': true
   '@prisma/engines': true
-  esbuild: true
   prisma: true
