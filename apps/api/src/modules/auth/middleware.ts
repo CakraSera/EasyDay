@@ -1,6 +1,6 @@
 import { createMiddleware } from 'hono/factory'
 import type { User } from '../../generated/prisma/client.js'
-import { prisma } from '../../db.js'
+import { prisma } from '../../utils/prisma.js'
 import { verifyToken } from '../../lib/token.js'
 
 type Env = {

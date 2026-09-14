@@ -12,11 +12,14 @@ config({ path: '.env', quiet: true })
 process.env.TOKEN_SECRET_KEY ??= 'smoke-only-secret'
 
 // With a key set, the script also proves the streaming path end to end.
-const BASE = `http://127.0.0.1:${process.env.PORT ?? 8787}`
+// src/index.ts serves on 8000 unconditionally; ignore any PORT in .env files.
+const BASE = 'http://127.0.0.1:8000'
 
-const child = spawn('pnpm', ['exec', 'tsx', 'src/server.ts'], {
+const child = spawn('pnpm', ['exec', 'tsx', 'src/index.ts'], {
   stdio: ['ignore', 'pipe', 'pipe'],
-  env: process.env,
+  // @runmax/agent builds its OpenAI client at import time; the boot needs a
+  // syntactically-present key even though these checks never call the model.
+  env: { ...process.env, OPENAI_API_KEY: process.env.OPENAI_API_KEY || 'smoke-dummy-key' },
 })
 child.stdout.on('data', (d) => process.stdout.write(`[srv] ${d}`))
 child.stderr.on('data', (d) => process.stderr.write(`[srv!] ${d}`))

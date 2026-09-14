@@ -7,7 +7,7 @@ import {
   AuthRegisterSchema,
 } from './schema.js'
 import { checkAuthorized } from './middleware.js'
-import { prisma } from '../../db.js'
+import { prisma } from '../../utils/prisma.js'
 import { hash, verify } from 'argon2'
 import { signToken } from '../../lib/token.js'
 import type { User } from '../../generated/prisma/client.js'

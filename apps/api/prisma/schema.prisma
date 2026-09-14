@@ -1,10 +1,6 @@
-// EasyDay backend — chat persistence.
-//
-// PRD v1 (document/PRD.en.md): single implicit user `demo`, no auth (ADR 0002).
-// Chat threads back the optional "Why?" drawer / assistant surface; the planner
-// artifact (Goal/Week) stays Board-first and is intentionally NOT modeled here
-// until the BuildThisWeek slice lands.
-
+// RunMax persistence: the `demo` Week record (PRD §5, ADR 0010/0011) plus the
+// chat threads this API adds — registered users (email + argon2id password)
+// and the `demo` singleton for the Week/build routes and anonymous chat.
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -14,9 +10,19 @@ datasource db {
   provider = "postgresql"
 }
 
-/// Users. PRD v1 (ADR 0002) assumed a single implicit `demo` user and no
-/// auth; registered accounts (email + password) were added later and the
-/// `demo` singleton remains for the chat route. Passwords are argon2id hashes.
+model WeekRecord {
+  id        String   @id @default(cuid())
+  userId    String
+  weekStart DateTime @db.Date
+  week      Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, weekStart])
+}
+
+/// Registered accounts (email + password). Passwords are argon2id hashes.
+/// The `demo` singleton stays a valid row with all auth columns null.
 model User {
   id           String    @id @default(cuid())
   email        String?   @unique
@@ -29,6 +35,8 @@ model User {
   @@map("users")
 }
 
+/// One client request = one Turn: the input user message plus the assistant
+/// response captured from the client protocol stream.
 model Thread {
   id        String   @id @default(cuid())
   userId    String   @map("user_id")
@@ -42,8 +50,6 @@ model Thread {
   @@map("threads")
 }
 
-/// One client request = one Turn: the input user message plus the assistant
-/// response captured from the client protocol stream.
 model Turn {
   id        String   @id @default(cuid())
   threadId  String   @map("thread_id")

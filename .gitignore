@@ -24,7 +24,9 @@ pnpm-debug.log*
 
 app-example
 
-# agent server (apps/api)
+# local server data
+.data/
+
+# embedded dev database + prisma client
 .devpg/
-*.log
 apps/api/src/generated/

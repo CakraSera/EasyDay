@@ -4,7 +4,7 @@
 
 ### Issue tracker
 
-GitHub Issues on `CakraSera/EasyDay` via `gh`. See `docs/agents/issue-tracker.md`.
+GitHub Issues on `CakraSera/RunMax` via `gh`. See `docs/agents/issue-tracker.md`.
 
 ### Domain docs
 

@@ -1,19 +1,14 @@
-import { config } from 'dotenv'
-config({ path: '.env', quiet: true })
-
+// Streaming chat route: POST / accepts the Anvia client protocol (JSON body,
+// JSONL stream response). Anonymous — writes under the `demo` user; threads
+// persisted per request via recordTurn.
 import { agentToClientStream } from '@anvia/client'
 import type { ClientStreamEvent, ClientStreamRequest } from '@anvia/client'
 import { createClientStreamResponse } from '@anvia/server'
-import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { getAgent } from './agent.js'
-import { DEMO_USER_ID } from './db.js'
-import { authRoute } from './modules/auth/route.js'
-
-import { RequestRejected, readChatRequest } from './request.js'
+import { DEMO_USER_ID } from './demo.js'
+import { RequestRejected, readChatRequest } from '../../lib/request.js'
 import { recordTurn } from './store.js'
-
-const app = new Hono()
 
 /**
  * One consumer, one tap: `recordTurn` iterates the client stream and this
@@ -44,10 +39,8 @@ function eventsToStream(events: readonly ClientStreamEvent[]): AsyncIterable<Cli
   }
   return run()
 }
-app.get('/health', (context) => context.json({ ok: true }))
-app.route('/auth', authRoute)
 
-app.post('/api/chat', async (context) => {
+export const chatRouter = new Hono().post('/', async (context) => {
   // PRD v1 (ADR 0002): single implicit user `demo`, no auth in v1. The userId
   // still flows into stream metadata so a later auth slice can swap this line.
   const user = { id: DEMO_USER_ID }
@@ -119,10 +112,3 @@ function threadIdFromBody(request: Request, body: { metadata?: unknown }) {
   }
   return undefined
 }
-
-const port = Number(process.env.PORT ?? 8787)
-const hostname = process.env.HOST ?? '127.0.0.1'
-
-serve({ fetch: app.fetch, hostname, port }, (info) => {
-  console.log(`[easyday-backend] listening on http://${hostname}:${info.port}`)
-})

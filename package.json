@@ -1,16 +1,25 @@
 {
-  "name": "easyday",
+  "name": "runmax",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "pnpm run --parallel dev",
     "start": "pnpm --filter platform dev",
     "web": "pnpm --filter platform web",
     "lint": "pnpm --filter platform typecheck",
     "typecheck": "pnpm -r typecheck",
-    "db:up": "pnpm --filter api db:up",
-    "db:down": "pnpm --filter api db:down",
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down",
     "db:migrate": "pnpm --filter api db:migrate",
     "smoke": "pnpm --filter api smoke"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "tsx": "^4.23.1",
+    "typescript": "~5.9.2"
+  },
+  "dependencies": {
+    "dotenv-cli": "^11.0.0"
   }
 }

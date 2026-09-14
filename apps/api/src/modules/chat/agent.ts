@@ -6,8 +6,9 @@ import { OpenAIClient } from '@anvia/openai'
  * BuildThisWeek workflow; this chat agent only explains the Week (the optional
  * "Why?" surface). System instructions never come from the browser.
  *
- * Built lazily: env (.env via dotenv in server.ts) must be loaded before the
- * provider key is read, and validation routes must work without a key.
+ * Built lazily: env (root `.env`, loaded by the `with-env` script in
+ * `apps/api/package.json`) must be applied before the provider key is read,
+ * and validation routes must work without a key.
  */
 let cached: Agent | undefined
 

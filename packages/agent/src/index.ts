@@ -1,1 +1,10 @@
-export const name = "Weeksmith";
+export { createWeeksmith, type CreateWeeksmithOptions } from "./agent.js";
+export { runBuildThisWeek, type BuildThisWeekInput, type BuildThisWeekResult } from "./workflow.js";
+export { defaultModel, getModel, openaiClient } from "./providers/openai.js";
+export type { WeeksmithEffort } from "./providers/openai.js";
+export { langfuse, tracing } from "./tracing.js";
+export { BASE_INSTRUCTIONS } from "./prompts/base-instructions.js";
+export { createNotesServer } from "./notes/server.js";
+export { connectNotesMcp, type NotesMcpConnection } from "./notes/client.js";
+export type { NotesStore, WeekStore } from "./ports.js";
+export type { WeeksmithStores } from "./tools/index.js";

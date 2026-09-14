@@ -1,4 +1,4 @@
-import type { Kind } from "./domain";
+import type { Kind } from "@runmax/domain";
 
 export const palette = {
   bg: "#FAFAF8",

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { type Kind, type Session } from "@/lib/domain";
+import { type Kind, type Session } from "@runmax/domain";
 import KindPicker from "./KindPicker";
 
 interface Props {
