@@ -7,9 +7,12 @@
     "dev": "pnpm run --parallel dev",
     "start": "pnpm --filter platform dev",
     "web": "pnpm --filter platform web",
+    "lint": "pnpm --filter platform typecheck",
+    "typecheck": "pnpm -r typecheck",
     "db:up": "docker compose up -d db",
+    "db:down": "docker compose down",
     "db:migrate": "pnpm --filter api db:migrate",
-    "lint": "pnpm --filter platform typecheck"
+    "smoke": "pnpm --filter api smoke"
   },
   "devDependencies": {
     "@types/node": "^26.1.1",

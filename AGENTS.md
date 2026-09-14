@@ -12,7 +12,7 @@ v1 scope is locked in [`document/PRD.en.md`](document/PRD.en.md) (Indonesian twi
 
 ## Architecture & Data Flow
 
-**Intended (PRD §7, unimplemented on the server):**
+**Intended (PRD §7):** the chat agent (`/api/chat`, streaming) is live in `apps/api`; the Week/Board workflow is still FE mock only:
 
 ```
 optional Log  →  Build this week  →  Weeksmith / BuildThisWeek
@@ -61,11 +61,14 @@ v1 surface is **web, phone width** ([ADR 0004](docs/adr/0004-web-mobile-first.md
 | `apps/platform/src/routes/` | File routes. Board is `/`. |
 | `apps/platform/src/components/` | Board chrome. |
 | `apps/platform/src/lib/` | Domain, mock Weeksmith, store, theme. |
-| `apps/api/` | **BE** — Hono + Prisma server (`name: api`). Routes: `/api/build`, `/api/week`. |
+| `apps/api/` | **BE** — Hono + Prisma server (`name: api`). Routes: `/api/build`, `/api/week`, `/api/chat`, `/auth/*`. |
 | `packages/agent/` | **AI** — Weeksmith agent on Anvia (`name: @runmax/agent`). 5 verb tools, MCP `notes`, Langfuse tracing. |
 | `packages/domain/` | Shared rule engine (`name: @runmax/domain`) — `checkWeek`, `parseCues`, Week/Session types. Platform, api, and agent all import it. |
 | `document/` | Bilingual PRD. Update **both** `PRD.en.md` and `PRD.id.md`. |
 | `docs/adr/` | Short title+rationale ADRs `0001`–`0014`. New architecture → next `00NN-kebab.md`. |
+| `apps/api/src/` | Server sources: `index.ts` entry; `modules/auth` (register/login/me), `modules/chat` (streaming), `modules/{build,week}` (Board data); `utils/prisma.ts`. |
+| `apps/api/prisma/` | Schema + migrations for the server's PostgreSQL store. |
+| `apps/api/scripts/` | `dev-db.ts` (embedded Postgres) and `smoke.ts` (route contract checks). |
 
 `app-example/` is leftover create-expo-app starter. Gitignored. Do not import from it.
 
@@ -77,12 +80,17 @@ Package manager is **pnpm**. Never npm/yarn/bun. Install from the **repo root**.
 pnpm install
 pnpm start                 # Vite on http://localhost:3000
 pnpm web                   # same
+pnpm typecheck             # all workspace packages
 pnpm --filter platform typecheck
 pnpm --filter api typecheck
 pnpm --filter @runmax/agent typecheck
 pnpm --filter @runmax/domain test      # golden fixtures, offline
 pnpm --filter @runmax/agent evals      # PRD §10 fixtures through the model
 pnpm --filter @runmax/agent studio     # Anvia Studio UI at http://127.0.0.1:4021/playground
+pnpm --filter api dev      # server: tsx watch src/index.ts (port 8000)
+pnpm db:up                 # docker compose db on :15433 (api db:up = embedded on :54329)
+pnpm db:migrate            # prisma migrate via root .env
+pnpm --filter api smoke    # route contract checks incl. auth flow
 ```
 
 Agent env comes from the root `.env` (`OPENAI_BASE_URL`, `OPENAI_API_KEY`,
@@ -96,7 +104,7 @@ max), `LANGFUSE_*`). Gateway is OpenRouter.
 - **Imports:** `@/foo` maps to `apps/platform/src/` (`apps/platform/tsconfig.json` `paths`).
 - **Styling:** Tailwind CSS 4. Phone-width, one column (`max-w-[480px]`). UI chrome is English; Logs may be ID/EN/mixed.
 - **Domain naming in identifiers and copy:** `Week`, `Session`, `kind`, `hard`, `Log`, `Pain`, `Board`, `Weeksmith`, `BuildThisWeek`. Kind values: `easy` \| `quality` \| `rest` \| `walk`. No `Goal`, no `race`.
-- **State / DI:** Week + optional Log live on the agent server as user `demo` ([ADR 0010](docs/adr/0010-week-and-log-not-goal.md)). The Board still uses its mock store until the FE is pointed at `/api/*`.
+- **State / DI:** Week + optional Log live on the agent server as user `demo` ([ADR 0010](docs/adr/0010-week-and-log-not-goal.md)); chat persistence and registered users are live in `apps/api` (Prisma/PostgreSQL). The Board still uses its mock store until the FE is pointed at `/api/*`.
 - **Errors:** Board banner, not a conversation. `checkWeek` fails closed (never ship `hardCount > 1`, 0 Rest/Walk, pain+Quality, ≠7 Sessions, a pace in the Quality note, or a diagnosis sentence).
 - **Async:** BuildThisWeek tools should be verb-named functions, one span each, one trace per Build.
 
@@ -112,6 +120,10 @@ max), `LANGFUSE_*`). Gateway is OpenRouter.
 | `apps/platform/src/routes/__root.tsx` | Root layout / header. |
 | `apps/platform/src/routes/index.tsx` | Home — Board. |
 | `apps/platform/src/lib/weeksmith.ts` | Mock BuildThisWeek workflow (FE stand-in until the API is wired). |
+| `apps/api/src/index.ts` | Server entry: `/api/build`, `/api/week`, `/api/chat`, `/auth/*`. |
+| `apps/api/src/modules/auth/route.ts` | Register / login / me (argon2id + JWT bearer). |
+| `apps/api/prisma/schema.prisma` | Persistence schema: WeekRecord, User, Thread, Turn. |
+| `apps/api/scripts/smoke.ts` | Route contract checks (413/400/200/401). |
 | `package.json` | Workspace root `name: runmax`. Scripts filter to `platform`. |
 | `apps/platform/package.json` | Vite app `name: platform`. |
 | `CONTEXT.md` | Domain language. |
@@ -127,9 +139,10 @@ max), `LANGFUSE_*`). Gateway is OpenRouter.
 | Frontend | Vite 8 + TanStack Router + React 19 + Tailwind CSS 4 |
 | TypeScript | `~5.9.2` |
 | Package manager | **pnpm** |
+| Server runtime | Node ≥ 22.18, Hono + @hono/node-server, Prisma 7 + @prisma/adapter-pg |
 | Docs (TanStack Router) | https://tanstack.com/router/latest |
 
-`pnpm-workspace.yaml` members: `apps/**`, `packages/**`. FE `apps/platform`, BE `apps/api`, AI `packages/agent`.
+`pnpm-workspace.yaml` members: `apps/**`, `packages/**`. FE `apps/platform`, BE `apps/api`, AI `packages/agent`. `allowBuilds` additionally allowlists `@embedded-postgres/linux-x64`, `@prisma/engines`, and `prisma` postinstall scripts.
 
 ## Testing & QA
 

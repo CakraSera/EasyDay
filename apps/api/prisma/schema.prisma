@@ -1,6 +1,6 @@
-// RunMax persistence (PRD §5, ADR 0010/0011): the single user `demo` record
-// — this Week plus its optional source Log. Rebuild overwrites this Monday;
-// older Mondays are not kept, so weekStart is unique per user.
+// RunMax persistence: the `demo` Week record (PRD §5, ADR 0010/0011) plus the
+// chat threads this API adds — registered users (email + argon2id password)
+// and the `demo` singleton for the Week/build routes and anonymous chat.
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -19,4 +19,53 @@ model WeekRecord {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, weekStart])
+}
+
+/// Registered accounts (email + password). Passwords are argon2id hashes.
+/// The `demo` singleton stays a valid row with all auth columns null.
+model User {
+  id           String    @id @default(cuid())
+  email        String?   @unique
+  username     String?   @unique
+  fullName     String?   @map("full_name")
+  passwordHash String?   @map("password_hash")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  threads      Thread[]
+
+  @@map("users")
+}
+
+/// One client request = one Turn: the input user message plus the assistant
+/// response captured from the client protocol stream.
+model Thread {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  title     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  turns     Turn[]
+
+  @@index([userId, updatedAt])
+  @@map("threads")
+}
+
+model Turn {
+  id        String   @id @default(cuid())
+  threadId  String   @map("thread_id")
+  /// Ordinal of the request within the thread (0-based).
+  seq       Int
+  /// Role of the stored input message: always "user" (server rejects others).
+  input     String
+  /// Assistant reply text, when the stream completed. Null = stopped/failed.
+  output    String?
+  /// True when the stream ended with an error event (masked to the client).
+  failed    Boolean  @default(false) @map("failed")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@unique([threadId, seq])
+  @@index([threadId, createdAt])
+  @@map("turns")
 }
