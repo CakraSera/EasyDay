@@ -112,7 +112,7 @@ function Board() {
         This week is for VO₂ max — mostly Easy, one Quality, one Rest or Walk.
       </p>
 
-      <div className="mt-1.5 flex items-baseline justify-between">
+      <div id="board-week" className="mt-1.5 flex scroll-mt-16 items-baseline justify-between">
         <h1 className="text-[17px] font-bold text-ink">This Week</h1>
         <p className="text-[13px] text-muted">{formatRange(weekStart)}</p>
       </div>
@@ -144,7 +144,7 @@ function Board() {
         </div>
       )}
 
-      <section className="mt-1 flex flex-col gap-2">
+      <section id="board-log" className="mt-1 flex scroll-mt-16 flex-col gap-2">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted">Log (optional)</p>
         <textarea
           className="min-h-[72px] rounded-control border border-border bg-surface p-3 text-sm text-ink placeholder:text-faint"
@@ -163,7 +163,9 @@ function Board() {
         <WorkflowChips statuses={statuses} />
       </section>
 
-      <TraceSection spans={spans} running={building} />
+      <div id="board-trace" className="scroll-mt-16">
+        <TraceSection spans={spans} running={building} />
+      </div>
 
       <EditSheet
         session={editing}
