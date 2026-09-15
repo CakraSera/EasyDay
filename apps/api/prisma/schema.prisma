@@ -1,6 +1,7 @@
 // RunMax persistence: the `demo` Week record (PRD §5, ADR 0010/0011) plus the
 // chat threads this API adds — registered users (email + argon2id password)
-// and the `demo` singleton for the Week/build routes and anonymous chat.
+// mirror the fitlex-api reference shape (ulid ids, VarChar bounds, separate
+// Password table). Anonymous chat keeps a Thread/Turn chain with no User row.
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -10,6 +11,8 @@ datasource db {
   provider = "postgresql"
 }
 
+/// Week/Board data rows: WeekRecord (user `demo`), Thread, Turn are NOT tied
+/// to the registered-accounts User; they carry their own bare userId string.
 model WeekRecord {
   id        String   @id @default(cuid())
   userId    String
@@ -21,29 +24,43 @@ model WeekRecord {
   @@unique([userId, weekStart])
 }
 
-/// Registered accounts (email + password). Passwords are argon2id hashes.
-/// The `demo` singleton stays a valid row with all auth columns null.
+/// Registered accounts, fitlex-api parity: all profile columns required,
+/// password lives in its own 1:1 table so the hash is never selected by
+/// accident. ulid ids; ids and bounds match the reference.
 model User {
-  id           String    @id @default(cuid())
-  email        String?   @unique
-  username     String?   @unique
-  fullName     String?   @map("full_name")
-  passwordHash String?   @map("password_hash")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  threads      Thread[]
+  id String @id @default(ulid())
 
-  @@map("users")
+  fullName String @db.VarChar(255)
+  username String @unique @db.VarChar(50)
+  email    String @unique @db.VarChar(255)
+
+  password Password?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Password {
+  id String @id @default(ulid())
+
+  hash String
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 /// One client request = one Turn: the input user message plus the assistant
-/// response captured from the client protocol stream.
+/// response captured from the client protocol stream. userId is the bare
+/// demo string (ADR 0002) — chat is anonymous in v1 and NOT a User row.
 model Thread {
   id        String   @id @default(cuid())
   userId    String   @map("user_id")
   title     String?
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   turns     Turn[]
 
   @@index([userId, updatedAt])

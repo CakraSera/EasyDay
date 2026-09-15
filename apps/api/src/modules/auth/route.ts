@@ -42,7 +42,11 @@ authRoute.openapi(
           email: body.email,
           fullName: body.fullName,
           username: body.username,
-          passwordHash: await hash(body.password),
+          password: {
+            create: {
+              hash: await hash(body.password),
+            },
+          },
         },
       })
       return c.json(toPrivateUser(user), 201)
@@ -76,10 +80,13 @@ authRoute.openapi(
   async (c) => {
     const body = c.req.valid('json')
 
-    const user = await prisma.user.findUnique({ where: { email: body.email } })
-    if (!user?.passwordHash) return c.notFound()
+    const user = await prisma.user.findUnique({
+      where: { email: body.email },
+      include: { password: true },
+    })
+    if (!user?.password) return c.notFound()
 
-    if (!(await verify(user.passwordHash, body.password))) {
+    if (!(await verify(user.password.hash, body.password))) {
       return c.json({ message: 'Password invalid' }, 400)
     }
 
@@ -111,9 +118,9 @@ authRoute.openapi(
 
 type PrivateUser = {
   id: string
-  fullName: string | null
-  email: string | null
-  username: string | null
+  fullName: string
+  email: string
+  username: string
   createdAt: Date
 }
 

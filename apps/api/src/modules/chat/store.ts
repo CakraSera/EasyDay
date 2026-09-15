@@ -1,4 +1,3 @@
-import { DEMO_USER_ID } from './demo.js'
 import { applyClientStreamEvent, assistantText } from '@anvia/client'
 import type { ClientStreamEvent, UIMessage } from '@anvia/client'
 import { prisma } from '../../utils/prisma.js'
@@ -35,13 +34,6 @@ export async function recordTurn(options: {
   if (input === undefined && output.length === 0 && !failed) return
 
   try {
-    // PRD v1 (ADR 0002): one implicit `demo` user; the auth-less chat route
-    // always writes under it. Idempotent.
-    await prisma.user.upsert({
-      where: { id: DEMO_USER_ID },
-      update: {},
-      create: { id: DEMO_USER_ID },
-    })
     const threadId = await resolveThreadId(options.userId, options.threadId)
     const seq = await prisma.turn.count({ where: { threadId } })
     await prisma.turn.create({

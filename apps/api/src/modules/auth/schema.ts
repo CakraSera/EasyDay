@@ -33,10 +33,9 @@ export const AuthHeaderSchema = z.object({
 
 export const AuthMeSchema = z
   .object({
-    id: z.string(),
-    fullName: z.string().nullable(),
-    email: z.string().nullable(),
-    username: z.string().nullable(),
+    fullName: z.string(),
+    email: z.string(),
+    username: z.string(),
     createdAt: z.string(),
   })
   .openapi('AuthMe')
