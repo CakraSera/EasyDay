@@ -14,3 +14,9 @@ export interface WeekStore {
   save(week: Week): Promise<void>;
   load(weekStart: string): Promise<Week | null>;
 }
+
+/** Consult's only artifact: the optional Log text (ADR 0016). Empty is a real save. */
+export interface LogStore {
+  save(log: string): Promise<void>;
+  load(): Promise<string>;
+}

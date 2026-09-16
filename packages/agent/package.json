@@ -11,8 +11,9 @@
     "typecheck": "tsc --noEmit",
     "runner:dev": "pnpm with-env tsx ./src/runner-dev.ts",
     "evals": "pnpm with-env tsx ./src/evals/run.ts",
-    "studio": "pnpm with-env tsx ./src/studio.ts",
+    "evals:consult": "pnpm with-env tsx ./src/evals/consult.ts",
     "notes:dev": "pnpm with-env tsx ./src/notes/server.ts",
+    "studio": "pnpm with-env tsx ./src/studio.ts",
     "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {
